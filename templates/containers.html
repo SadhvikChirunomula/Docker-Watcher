@@ -1,0 +1,165 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Docker Container Stats</title>
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@3.3.2"></script>
+  <style>
+    /* General styling */
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      font-family: Arial, sans-serif;
+    }
+
+    .footer {
+      background-color: #ddd;
+      color: #333;
+      text-align: center;
+      padding: 20px;
+      position: absolute;
+      bottom: 0;
+      width: 100%;
+    }
+
+    .header {
+        padding: 20px;
+        background-image: linear-gradient(to right, #4C77AC , #81B8D1);
+        color: white;
+        text-align: center;
+        font-size: 18px;
+        font-weight: bold;
+        letter-spacing: 3px;
+        text-shadow: 1px 1px #000;
+        }
+
+
+    h1 {
+        font-size: 3em;
+        color: #333;
+        text-align: center;
+        margin-top: 50px;
+        margin-bottom: 30px;
+    }
+
+    /* Table styling */
+    table {
+  width: 100%;
+  border-collapse: collapse;
+  border: 1px solid #ddd;
+  margin: 20px 0;
+  table-layout: fixed;
+}
+
+th,
+td {
+  border: 1px solid #ddd;
+  padding: 8px;
+  text-align: left;
+  overflow: hidden;
+  white-space: nowrap;
+  text-overflow: ellipsis;
+}
+
+th {
+  background-color: #f2f2f2;
+  font-weight: bold;
+}
+
+
+    tr:nth-child(even) {
+      background-color: #f2f2f2;
+    }
+
+    .running {
+      background-color: #d0e8f2;
+    }
+
+    .exited {
+      background-color: #e8d0d0;
+    }
+
+    /* Status badge styling */
+    .status {
+      display: inline-block;
+      font-size: 0.8em;
+      font-weight: bold;
+      padding: 5px;
+      border-radius: 5px;
+      text-align: center;
+      min-width: 70px;
+    }
+
+    .status.running {
+      color: #1f8a9e;
+      background-color: #d0e8f2;
+    }
+
+    .status.exited {
+      color: #9e1f1f;
+      background-color: #e8d0d0;
+    }
+
+    /* Container color block styling */
+    .color-block {
+      display: inline-block;
+      width: 20px;
+      height: 20px;
+      margin-right: 5px;
+      border: 1px solid #ddd;
+    }
+
+    {% for container in containers if container.status == 'running' %}
+    .{{ container.id }} {
+      background-color: {{ container.color }};
+    }
+    {% endfor %}
+
+  </style>
+</head>
+
+<body>
+    <div class="header">
+        <h1>Docker Container Stats</h1>
+    </div>
+  <table>
+    <thead>
+      <tr>
+        <th>ID</th>
+        <th>Name</th>
+        <th>Image</th>
+        <th>Status</th>
+        <th>Health</th>
+        <th>CPU Usage (%)</th>
+        <th>Memory Usage (MB)</th>
+        <th>Network RX (MB)</th>
+        <th>Network TX (MB)</th>
+      </tr>
+    </thead>
+    <tbody>
+      {% for container in containers %}
+      <tr class="{{ container.status }} {{ container.id }}">
+        <td>{{ container.id }}</td>
+        <td>{{ container.name }}</td>
+        <td>{{ container.image }}</td>
+        <td><span class="status {{ container.status }}">{{ container.status }}</span></td>
+        <td>{{ container.health }}</td>
+        <td>{{ container.cpu_usage }}</td>
+        <td>{{ container.memory_usage }}</td>
+        <td>{{ container.network_rx }}</td>
+        <td>{{ container.network_tx }}</td>
+    </tr>
+    {% endfor %}
+        </tbody>
+    </table>
+    <div class="footer">
+        <p>Created by Sadhvik Chirunomula &copy; 2023</p>
+      </div>
+</body>
+
+</html>
