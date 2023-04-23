@@ -1,0 +1,240 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Container Logs - {{ container_name }}</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/styles/vs2015.min.css">
+    <style>
+        .log-container {
+            /* max-height: 2000px; */
+            height: 80vh;
+
+            max-height: calc(100vh - 100px);
+            /* subtract the height of the header from the max-height */
+
+            overflow-y: auto;
+            background-color: #1e1e1e;
+            padding: 20px;
+            border-radius: 5px;
+            width: 80%;
+            font-size: 16px;
+
+            float: left;
+        }
+
+        .controls {
+            width: 15%;
+            float: right;
+            padding: 20px;
+            box-sizing: border-box;
+        }
+
+        .control-group {
+            margin-bottom: 20px;
+        }
+
+        .control-group label {
+            display: block;
+            font-size: 14px;
+            margin-bottom: 5px;
+        }
+
+        .input-group {
+            display: flex;
+            align-items: center;
+        }
+
+        .form-input {
+            padding: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #333;
+            color: #fff;
+            font-size: 14px;
+            width: 60px;
+        }
+
+        .form-button {
+            padding: 10px 20px;
+            margin-left: 10px;
+            border: none;
+            border-radius: 5px;
+            background-color: #4CAF50;
+            color: #fff;
+            font-size: 14px;
+            cursor: pointer;
+        }
+
+        .toggle-switch {
+            position: relative;
+            display: inline-block;
+            width: 60px;
+            height: 34px;
+        }
+
+        .toggle-switch input {
+            display: none;
+        }
+
+        .slider {
+            position: absolute;
+            cursor: pointer;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background-color: #ccc;
+            transition: .4s;
+            border-radius: 34px;
+        }
+
+        .slider:before {
+            position: absolute;
+            content: "";
+            height: 26px;
+            width: 26px;
+            left: 4px;
+            bottom: 4px;
+            background-color: #fff;
+            transition: .4s;
+            border-radius: 50%;
+        }
+
+        input:checked+.slider {
+            background-color: #4CAF50;
+        }
+
+        input:focus+.slider {
+            box-shadow: 0 0 1px #4CAF50;
+        }
+
+        input:checked+.slider:before {
+            transform: translateX(26px);
+        }
+
+        .slider.round {
+            border-radius: 34px;
+        }
+
+        .slider.round:before {
+            border-radius: 50%;
+        }
+
+        .log-container:after {
+            content: "";
+            display: table;
+            clear: both;
+        }
+
+        body {
+            background: linear-gradient(to bottom right, #E0EAFC, #FFFFFF);
+        }
+
+
+        h1 {
+            font-size: 3em;
+            color: #333;
+            text-align: center;
+            margin-top: 50px;
+            margin-bottom: 30px;
+        }
+    </style>
+</head>
+
+<body>
+    <div>
+        <h1 style="font-size: 36px;">Container Logs - {{ container_name }}</h1>
+    </div>
+
+    <div class="log-container">
+        <pre><code id="logContent" class="hljs">{{ logs }}</code></pre>
+    </div>
+
+    <div class="controls">
+        <div class="control-group">
+            <label for="lines">Show latest:</label>
+            <div class="input-group">
+                <input type="number" id="lines" value="100" class="form-input">
+                <button id="updateLines" class="form-button">Update</button>
+            </div>
+        </div>
+        <div class="control-group">
+            <label for="autoRefresh">Auto-refresh:</label>
+            <div class="input-group">
+                <label class="toggle-switch">
+                    <input type="checkbox" id="autoRefresh">
+                    <span class="slider round"></span>
+                </label>
+            </div>
+        </div>
+        <div class="control-group">
+            <label for="refreshInterval">Refresh interval (s):</label>
+            <div class="input-group">
+                <input type="number" id="refreshInterval" value="5" disabled class="form-input">
+            </div>
+        </div>
+    </div>
+
+
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/highlight.js/11.6.0/highlight.min.js"></script>
+    <script>
+        const containerId = '{{ container_id }}';
+        console.log("Value of Container ID: " + containerId)
+        hljs.highlightAll();
+        async function fetchLogsAndUpdateView() {
+            const response = await fetch('/logs/' + containerId + '/text?lines=' + document.getElementById("lines").value);
+            const logs = await response.text();
+            const logContent = document.getElementById("logContent");
+            logContent.textContent = logs;
+            hljs.highlightElement(logContent);
+        }
+
+
+        document.getElementById("updateLines").addEventListener("click", function () {
+            const linesInput = document.getElementById("lines");
+            const logContent = document.getElementById("logContent");
+            const lines = parseInt(linesInput.value, 10);
+            if (lines > 0) {
+                const logLines = logContent.textContent.trim().split("\n");
+                const latestLines = logLines.slice(-lines).join("\n");
+                logContent.textContent = latestLines;
+                hljs.highlightElement(logContent);
+            }
+        });
+
+        let autoRefreshInterval;
+
+        document.getElementById("autoRefresh").addEventListener("change", function () {
+            const autoRefreshCheckbox = document.getElementById("autoRefresh");
+            const refreshIntervalInput = document.getElementById("refreshInterval");
+
+            if (autoRefreshCheckbox.checked) {
+                refreshIntervalInput.disabled = false;
+                const interval = parseInt(refreshIntervalInput.value, 10);
+                if (interval > 0) {
+                    autoRefreshInterval = setInterval(fetchLogsAndUpdateView, interval * 1000);
+                }
+            } else {
+                refreshIntervalInput.disabled = true;
+                clearInterval(autoRefreshInterval);
+            }
+        });
+
+        document.getElementById("refreshInterval").addEventListener("change", function () {
+            const autoRefreshCheckbox = document.getElementById("autoRefresh");
+            const refreshIntervalInput = document.getElementById("refreshInterval");
+
+            if (autoRefreshCheckbox.checked) {
+                clearInterval(autoRefreshInterval);
+                const interval = parseInt(refreshIntervalInput.value, 10);
+                if (interval > 0) {
+                    autoRefreshInterval = setInterval(fetchLogsAndUpdateView, interval * 1000);
+                }
+            }
+        });
+    </script>
+</body>
+
+</html>

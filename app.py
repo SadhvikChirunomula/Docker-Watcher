@@ -43,10 +43,17 @@ def containers():
 def logs(container_id):
     try:
         container = client.containers.get(container_id)
-        container_logs = container.logs()
-        return Response(container_logs, mimetype='text/plain')
+        container_logs = container.logs().decode("utf-8")
+        container_name = container.name
+        return render_template('log_view.html', logs=container_logs, container_name=container_name, container_id=container_id)
     except docker.errors.NotFound:
         abort(404)
+
+@app.route('/logs/<container_id>/text')
+def logs_text(container_id):
+    container = client.containers.get(container_id)
+    logs = container.logs().decode('utf-8')
+    return Response(logs, mimetype='text/plain')
 
 
 if __name__ == '__main__':
