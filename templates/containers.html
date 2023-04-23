@@ -124,9 +124,9 @@ th {
 </head>
 
 <body>
-    <div class="header">
-        <h1>Docker Container Stats</h1>
-    </div>
+  <div class="header">
+    <h1>Docker Container Stats</h1>
+  </div>
   <table>
     <thead>
       <tr>
@@ -137,8 +137,7 @@ th {
         <th>Health</th>
         <th>CPU Usage (%)</th>
         <th>Memory Usage (MB)</th>
-        <th>Network RX (MB)</th>
-        <th>Network TX (MB)</th>
+        <th>Logs</th>
       </tr>
     </thead>
     <tbody>
@@ -151,15 +150,21 @@ th {
         <td>{{ container.health }}</td>
         <td>{{ container.cpu_usage }}</td>
         <td>{{ container.memory_usage }}</td>
-        <td>{{ container.network_rx }}</td>
-        <td>{{ container.network_tx }}</td>
-    </tr>
-    {% endfor %}
-        </tbody>
-    </table>
-    <div class="footer">
-        <p>Created by Sadhvik Chirunomula &copy; 2023</p>
-      </div>
+        <td><button onclick="openLogs('{{ container.id }}')">Logs</button></td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <div class="footer">
+    <p>Created by Sadhvik Chirunomula &copy; 2023</p>
+  </div>
+  <script>
+    function openLogs(containerId) {
+      var url = '/logs/' + containerId;
+      window.open(url, '_blank');
+    }
+  </script>
 </body>
+
 
 </html>
