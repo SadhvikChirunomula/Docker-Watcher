@@ -6,6 +6,8 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Docker Container Stats</title>
   <script src="https://cdn.jsdelivr.net/npm/chart.js@3.3.2"></script>
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/5.15.3/css/all.min.css">
+
   <style>
     /* General styling */
     * {
@@ -137,6 +139,59 @@
       {
       % endfor %
     }
+
+    .btn-start {
+      background-color: #63cd63;
+      border: none;
+      color: white;
+      padding: 16px 24px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 18px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-stop {
+      background-color: #cd6363;
+      border: none;
+      color: white;
+      padding: 16px 24px;
+      text-align: center;
+      text-decoration: none;
+      display: inline-block;
+      font-size: 18px;
+      margin: 4px 2px;
+      cursor: pointer;
+      border-radius: 4px;
+      transition: background-color 0.3s ease;
+    }
+
+    .btn-start:disabled {
+      background-color: #b3b3b3;
+      cursor: not-allowed;
+    }
+
+    .btn-stop:disabled {
+      background-color: #b3b3b3;
+      cursor: not-allowed;
+    }
+
+    .btn-start:hover {
+      background-color: #59b659;
+    }
+
+    .btn-stop:hover {
+      background-color: #a63c3c;
+    }
+
+    .btn-start i,
+    .btn-stop i {
+      margin-right: 8px;
+    }
   </style>
 </head>
 
@@ -155,6 +210,7 @@
         <th>CPU Usage (%)</th>
         <th>Memory Usage (MB)</th>
         <th>Logs</th>
+        <th>Operation</th>
       </tr>
     </thead>
     <tbody>
@@ -168,6 +224,19 @@
         <td>{{ container.cpu_usage }}</td>
         <td>{{ container.memory_usage }}</td>
         <td><button onclick="openLogs('{{ container.id }}')">Logs</button></td>
+        <td>
+          {% if container.status == 'running' %}
+          <button class="btn-stop" onclick="stopContainer('{{ container.id }}')"><i class="fas fa-pause"></i></button>
+          <button class="btn-start" onclick="startContainer('{{ container.id }}')" disabled><i
+              class="fas fa-play"></i></button>
+          {% else %}
+          <button class="btn-stop" onclick="stopContainer('{{ container.id }}')" disabled><i
+              class="fas fa-pause"></i></button>
+          <button class="btn-start" onclick="startContainer('{{ container.id }}')"><i class="fas fa-play"></i></button>
+          {% endif %}
+        </td>
+
+
       </tr>
       {% endfor %}
     </tbody>
@@ -176,11 +245,33 @@
     <p>Created by Sadhvik Chirunomula &copy; 2023</p>
   </div>
   <script>
+    setTimeout(function () {
+      location.reload();
+    }, 5000);
+
+
     function openLogs(containerId) {
       var url = '/logs/' + containerId;
       window.open(url, '_blank');
     }
+
+    function startContainer(containerId) {
+      var url = '/containers/' + containerId + '/start';
+      fetch(url, { method: 'GET' })
+        .then(response => response.text())
+        .then(data => console.log(data))
+        .catch(error => console.error(error));
+    }
+
+    function stopContainer(containerId) {
+      var url = '/containers/' + containerId + '/stop';
+      fetch(url, { method: 'GET' })
+        .then(response => response.text())
+        .then(data => console.log(data))
+        .catch(error => console.error(error));
+    }
   </script>
+
 </body>
 
 

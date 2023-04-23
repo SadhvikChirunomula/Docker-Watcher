@@ -55,6 +55,24 @@ def logs_text(container_id):
     logs = container.logs().decode('utf-8')
     return Response(logs, mimetype='text/plain')
 
+@app.route('/containers/<container_id>/start')
+def start_container(container_id):
+    try:
+        container = client.containers.get(container_id)
+        container.start()
+        return 'Container started'
+    except docker.errors.NotFound:
+        abort(404)
+
+
+@app.route('/containers/<container_id>/stop')
+def stop_container(container_id):
+    try:
+        container = client.containers.get(container_id)
+        container.stop()
+        return 'Container stopped'
+    except docker.errors.NotFound:
+        abort(404)
 
 if __name__ == '__main__':
     app.run(host=HOST, port=PORT, debug=True)
